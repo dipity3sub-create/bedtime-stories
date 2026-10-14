@@ -28,6 +28,11 @@ site to connect your partner's phone.
 Audio files in the [`recordings`](recordings/) folder are offered to everyone who opens the site.
 The repository is public, so anyone with the link can hear them. See [`recordings/README.md`](recordings/README.md).
 
+## Releasing changes
+
+After changing `styles.css` or any `.js` file, raise the `?v=` number on its tag in `index.html`, so phones that
+load the new page also load the new files instead of an older saved copy.
+
 ## Adding stories
 
 Add an entry to `window.STORIES` in `stories.js` with `title` and `text` (an array of paragraphs) for `en`, `ko` and `zh`.
