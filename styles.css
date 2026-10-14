@@ -218,3 +218,30 @@ main { max-width: 720px; margin: 0 auto; padding-block: 16px; }
 #fam-invite-text { width: 100%; height: 40px; padding: 0 10px; border-radius: 10px; border: 0; font: inherit; }
 .fam-msg { min-height: 1.5em; color: var(--accent); }
 .rec-list .sync { font-size: 0.8rem; color: var(--muted); }
+
+/* Pinyin under Chinese characters */
+ruby { ruby-position: under; -webkit-ruby-position: after; ruby-align: center; padding-inline: 0.12em; }
+rt {
+  font-size: 0.6em;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+  font-family: system-ui, sans-serif;
+}
+.story-list rt { font-size: 0.62em; }
+.story-text:lang(zh) p:has(ruby) { line-height: 2.8; }
+h2:has(ruby) { line-height: 1.8; }
+
+.pinyin-btn {
+  float: right;
+  margin: 0 40px 0 0;
+  border: 1px solid #cfc6b0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.pinyin-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }

@@ -186,6 +186,7 @@
     famInviteText: $("fam-invite-text"),
     famDisconnect: $("fam-disconnect"),
     famMsg: $("fam-msg"),
+    pinyinBtn: $("pinyin-btn"),
   };
 
   const store = {
@@ -422,6 +423,38 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Pinyin under Chinese characters (data in pinyin.js, see tools/make_pinyin.py)
+
+  const pinyinOn = () => state.lang === "zh" && store.get("pinyin") !== "off";
+
+  function pinyinFor(storyId, part, index) {
+    if (!pinyinOn()) return null;
+    const entry = window.PINYIN?.[storyId];
+    return (part === "title" ? entry?.title : entry?.text?.[index]) || null;
+  }
+
+  // Fills el with text, as ruby annotations when pinyin matches the text.
+  function setText(el, text, pinyin) {
+    if (!pinyin || pinyin.map((x) => x[0]).join("") !== text) {
+      el.textContent = text;
+      return;
+    }
+    el.replaceChildren(...pinyin.map(([chars, py]) => {
+      if (!py) return document.createTextNode(chars);
+      const ruby = document.createElement("ruby");
+      const rt = document.createElement("rt");
+      rt.textContent = py;
+      ruby.append(chars, rt);
+      return ruby;
+    }));
+  }
+
+  function renderPinyinToggle() {
+    els.pinyinBtn.hidden = state.lang !== "zh";
+    els.pinyinBtn.setAttribute("aria-pressed", String(pinyinOn()));
+  }
+
+  // ---------------------------------------------------------------------------
   // Story list
 
   function renderChrome() {
@@ -443,6 +476,7 @@
     els.recName.placeholder = t("recPlaceholder");
     if (!recorder.active) els.recBtn.textContent = t("record");
     renderFamily();
+    renderPinyinToggle();
     document.querySelectorAll(".lang-switch button").forEach((b) => {
       b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang));
     });
@@ -458,7 +492,7 @@
       emoji.className = "emoji";
       emoji.textContent = story.emoji;
       const title = document.createElement("span");
-      title.textContent = story.title[state.lang];
+      setText(title, story.title[state.lang], pinyinFor(story.id, "title"));
       btn.append(emoji, title);
       const count = state.recordingCounts[`${story.id}:${state.lang}`];
       if (count) {
@@ -501,12 +535,13 @@
     player.stop();
     state.story = story;
     const lang = state.lang;
-    els.storyTitle.textContent = `${story.emoji} ${story.title[lang]}`;
+    setText(els.storyTitle, story.title[lang], pinyinFor(story.id, "title"));
+    els.storyTitle.prepend(`${story.emoji} `);
     els.storyTitle.lang = lang;
     els.storyText.lang = lang;
-    els.storyText.replaceChildren(...story.text[lang].map((para) => {
+    els.storyText.replaceChildren(...story.text[lang].map((para, i) => {
       const p = document.createElement("p");
-      p.textContent = para;
+      setText(p, para, pinyinFor(story.id, "text", i));
       return p;
     }));
     if (!els.dialog.open) els.dialog.showModal();
@@ -913,6 +948,20 @@
     player.restartIfPlaying();
   });
   els.recBtn.addEventListener("click", () => recorder.toggle());
+  els.pinyinBtn.addEventListener("click", () => {
+    store.set("pinyin", pinyinOn() ? "off" : "on");
+    renderPinyinToggle();
+    renderList();
+    if (state.story) {
+      // Re-render the text without interrupting playback.
+      const story = state.story;
+      const reading = [...els.storyText.children].findIndex((p) => p.classList.contains("reading"));
+      setText(els.storyTitle, story.title.zh, pinyinFor(story.id, "title"));
+      els.storyTitle.prepend(`${story.emoji} `);
+      [...els.storyText.children].forEach((p, i) => setText(p, story.text.zh[i], pinyinFor(story.id, "text", i)));
+      if (reading >= 0) els.storyText.children[reading].classList.add("reading");
+    }
+  });
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
     $("recorder").hidden = true;
   }

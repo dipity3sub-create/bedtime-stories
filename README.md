@@ -32,6 +32,16 @@ The repository is public, so anyone with the link can hear them. See [`recording
 
 Add an entry to `window.STORIES` in `stories.js` with `title` and `text` (an array of paragraphs) for `en`, `ko` and `zh`.
 
+Then regenerate the pinyin shown under the Chinese text:
+
+```sh
+pip install pypinyin
+python3 tools/make_pinyin.py
+```
+
+Check the output for characters with more than one reading (着, 地, 一, neutral tones) and add corrections to
+`FIXES` in `tools/make_pinyin.py`. Until it's regenerated, a changed Chinese paragraph is shown without pinyin.
+
 ## Running locally
 
 It's a static site with no build step:
