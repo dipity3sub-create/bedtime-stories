@@ -281,3 +281,41 @@ html[lang="zh"] .story-list button { font-size: 1.55rem; }
 html[lang="ko"] .subtitle { font-size: 1.55rem; }
 html[lang="ko"] .story-list button { font-size: 1.6rem; }
 html[lang="ko"] .family h2 { font-size: 1.7rem; }
+
+/* Children's names */
+.names-btn {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-family: system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+.names-btn.only-icon { opacity: 0.6; }
+.names-dialog {
+  width: min(440px, calc(100vw - 24px));
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  padding: 24px;
+}
+.names-dialog::backdrop { background: rgba(10, 12, 30, 0.7); }
+.names-form h2 { margin: 0 0 4px; font-size: 1.2rem; }
+.names-form fieldset { border: 0; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.names-form legend { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; padding: 0; }
+.names-form input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid #cfc6b0;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+}
+.names-actions { display: flex; justify-content: flex-end; gap: 8px; }

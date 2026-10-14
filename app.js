@@ -11,7 +11,14 @@
   const UI = {
     en: {
       title: "Bedtime Stories",
-      subtitle: "for Luca and Leon",
+      subtitle: "Gentle stories to read together before sleep",
+      addNames: "Add your children's names",
+      editNames: "Edit names",
+      namesTitle: "Your children's names",
+      namesHelp: "Shown at the top of the page. Saved on this phone only; the invite link passes them to your partner's phone. Korean and Chinese spellings are optional.",
+      child: "Child",
+      save: "Save",
+      cancel: "Cancel",
       voice: "Voice",
       speed: "Speed",
       deviceVoices: "Device voices",
@@ -56,7 +63,14 @@
     },
     ko: {
       title: "잠자리 동화",
-      subtitle: "루카와 레온에게",
+      subtitle: "잠들기 전 함께 읽는 포근한 이야기",
+      addNames: "아이 이름 입력하기",
+      editNames: "이름 수정",
+      namesTitle: "아이 이름",
+      namesHelp: "페이지 맨 위에 표시돼요. 이 휴대폰에만 저장되며, 초대 링크로 배우자 휴대폰에도 전달돼요. 한국어와 중국어 표기는 선택 사항이에요.",
+      child: "아이",
+      save: "저장",
+      cancel: "취소",
       voice: "목소리",
       speed: "속도",
       deviceVoices: "기기 음성",
@@ -101,7 +115,14 @@
     },
     zh: {
       title: "睡前故事",
-      subtitle: "给 Luca 和 Leon",
+      subtitle: "睡前一起读的温柔小故事",
+      addNames: "添加孩子的名字",
+      editNames: "修改名字",
+      namesTitle: "孩子的名字",
+      namesHelp: "显示在页面顶部。只保存在这部手机上；邀请链接会把名字带到伴侣的手机上。韩文和中文写法可以不填。",
+      child: "孩子",
+      save: "保存",
+      cancel: "取消",
       voice: "声音",
       speed: "语速",
       deviceVoices: "设备语音",
@@ -150,6 +171,13 @@
   const els = {
     title: $("site-title"),
     subtitle: $("site-subtitle"),
+    namesBtn: $("names-btn"),
+    namesDialog: $("names-dialog"),
+    namesForm: $("names-form"),
+    namesTitle: $("names-title"),
+    namesHelp: $("names-help"),
+    namesSave: $("names-save"),
+    namesCancel: $("names-cancel"),
     list: $("story-list"),
     dialog: $("story-dialog"),
     close: $("close-btn"),
@@ -419,7 +447,10 @@
   }
 
   function inviteLink() {
-    return `${location.origin}${location.pathname}#drive=${encodeURIComponent(drive.url())}`;
+    const params = new URLSearchParams({ drive: drive.url() });
+    const kids = getKids();
+    if (kids.length) params.set("kids", JSON.stringify(kids));
+    return `${location.origin}${location.pathname}#${params}`;
   }
 
   // ---------------------------------------------------------------------------
@@ -455,13 +486,81 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Children's names: kept on this phone only (and passed on by invite link),
+  // never in the site's code. Stored as [{en, ko, zh}, ...].
+
+  function getKids() {
+    try {
+      const kids = JSON.parse(store.get("kids") || "[]");
+      return Array.isArray(kids) ? kids.filter((k) => k && k.en) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setKids(kids) {
+    const clean = kids
+      .map((k) => Object.fromEntries(["en", "ko", "zh"].map((l) => [l, String(k[l] || "").trim().slice(0, 30)])))
+      .filter((k) => k.en);
+    if (clean.length) store.set("kids", JSON.stringify(clean));
+    else store.remove("kids");
+  }
+
+  // Korean "and": 와 after a vowel sound, 과 after a consonant.
+  function koAnd(name) {
+    const last = name.charCodeAt(name.length - 1);
+    if (last >= 0xac00 && last <= 0xd7a3) return (last - 0xac00) % 28 ? "과" : "와";
+    return /[b-df-hj-np-tv-xz]$/i.test(name) ? "과" : "와";
+  }
+
+  function namesLine(lang) {
+    const names = getKids().map((k) => k[lang] || k.en);
+    if (!names.length) return "";
+    const [a, b] = names;
+    if (lang === "ko") return b ? `${a}${koAnd(a)} ${b}에게` : `${a}에게`;
+    if (lang === "zh") {
+      const sp = /[a-z]/i.test(names.join("")) ? " " : "";
+      return b ? `给${sp}${a}${sp}和${sp}${b}` : `给${sp}${a}`;
+    }
+    return b ? `for ${a} and ${b}` : `for ${a}`;
+  }
+
+  function renderSubtitle() {
+    const line = namesLine(state.lang);
+    els.subtitle.textContent = line || t("subtitle");
+    els.namesBtn.textContent = line ? "✎" : `✎ ${t("addNames")}`;
+    els.namesBtn.classList.toggle("only-icon", Boolean(line));
+    els.namesBtn.setAttribute("aria-label", line ? t("editNames") : t("addNames"));
+  }
+
+  function openNames() {
+    const kids = getKids();
+    els.namesForm.querySelectorAll("fieldset").forEach((fs, i) => {
+      for (const l of ["en", "ko", "zh"]) fs.querySelector(`[data-l="${l}"]`).value = kids[i]?.[l] || "";
+    });
+    els.namesDialog.showModal();
+  }
+
+  function saveNames() {
+    setKids([...els.namesForm.querySelectorAll("fieldset")].map((fs) =>
+      Object.fromEntries(["en", "ko", "zh"].map((l) => [l, fs.querySelector(`[data-l="${l}"]`).value]))));
+    els.namesDialog.close();
+    renderSubtitle();
+  }
+
+  // ---------------------------------------------------------------------------
   // Story list
 
   function renderChrome() {
     document.documentElement.lang = state.lang;
     document.title = t("title");
     els.title.textContent = t("title");
-    els.subtitle.textContent = t("subtitle");
+    renderSubtitle();
+    els.namesTitle.textContent = t("namesTitle");
+    els.namesHelp.textContent = t("namesHelp");
+    els.namesSave.textContent = t("save");
+    els.namesCancel.textContent = t("cancel");
+    els.namesForm.querySelectorAll("legend").forEach((l, i) => { l.textContent = `${t("child")} ${i + 1}`; });
     els.narratorLabel.textContent = t("voice");
     els.rateLabel.textContent = t("speed");
     els.recSummary.textContent = t("recSummary");
@@ -1016,15 +1115,23 @@
     refreshCounts();
   });
 
-  // Invite link: #drive=<script link>
-  const invite = location.hash.match(/^#drive=(.+)$/);
+  els.namesBtn.addEventListener("click", openNames);
+  els.namesCancel.addEventListener("click", () => els.namesDialog.close());
+  els.namesForm.addEventListener("submit", (e) => { e.preventDefault(); saveNames(); });
+
+  // Invite link: #drive=<script link>&kids=<names>
   let joinedMessage = "";
-  if (invite) {
-    const scriptUrl = decodeURIComponent(invite[1]);
+  if (location.hash.startsWith("#drive=")) {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const scriptUrl = params.get("drive") || "";
     if (drive.validUrl(scriptUrl)) {
       drive.connect(scriptUrl);
       joinedMessage = tf("joined");
     }
+    try {
+      const kids = JSON.parse(params.get("kids") || "null");
+      if (Array.isArray(kids)) setKids(kids);
+    } catch { /* ignore */ }
     history.replaceState(null, "", location.pathname + location.search);
   }
 

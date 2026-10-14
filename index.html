@@ -7,12 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Long+Cang&family=Patrick+Hand&display=swap">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <header class="site-header">
     <h1 id="site-title">Bedtime Stories</h1>
-    <p id="site-subtitle" class="subtitle"></p>
+    <p class="subtitle"><span id="site-subtitle"></span>
+      <button type="button" id="names-btn" class="names-btn"></button></p>
     <nav class="lang-switch" aria-label="Language">
       <button type="button" data-lang="en" lang="en">English</button>
       <button type="button" data-lang="ko" lang="ko">한국어</button>
@@ -47,6 +48,29 @@
       <p id="fam-msg" class="fam-msg" aria-live="polite"></p>
     </section>
   </main>
+
+  <dialog id="names-dialog" class="names-dialog">
+    <form id="names-form" class="names-form">
+      <h2 id="names-title">Your children's names</h2>
+      <p id="names-help" class="help"></p>
+      <fieldset>
+        <legend>Child 1</legend>
+        <input type="text" id="kid1-en" data-l="en" lang="en" placeholder="English" aria-label="English" maxlength="30" autocomplete="off">
+        <input type="text" id="kid1-ko" data-l="ko" lang="ko" placeholder="한국어" aria-label="한국어" maxlength="30" autocomplete="off">
+        <input type="text" id="kid1-zh" data-l="zh" lang="zh" placeholder="中文" aria-label="中文" maxlength="30" autocomplete="off">
+      </fieldset>
+      <fieldset>
+        <legend>Child 2</legend>
+        <input type="text" id="kid2-en" data-l="en" lang="en" placeholder="English" aria-label="English" maxlength="30" autocomplete="off">
+        <input type="text" id="kid2-ko" data-l="ko" lang="ko" placeholder="한국어" aria-label="한국어" maxlength="30" autocomplete="off">
+        <input type="text" id="kid2-zh" data-l="zh" lang="zh" placeholder="中文" aria-label="中文" maxlength="30" autocomplete="off">
+      </fieldset>
+      <div class="names-actions">
+        <button type="button" id="names-cancel" class="stop-btn">Cancel</button>
+        <button type="submit" id="names-save" class="play-btn">Save</button>
+      </div>
+    </form>
+  </dialog>
 
   <dialog id="story-dialog" class="story-dialog">
     <div class="dialog-inner">
@@ -97,8 +121,8 @@
     </div>
   </dialog>
 
-  <script src="stories.js?v=6"></script>
-  <script src="pinyin.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="stories.js?v=7"></script>
+  <script src="pinyin.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
