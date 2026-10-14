@@ -245,3 +245,39 @@ h2:has(ruby) { line-height: 1.8; }
   cursor: pointer;
 }
 .pinyin-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* Handwritten fonts for the main page (not the story view), one per language */
+:root {
+  --hand-en: "Patrick Hand", "Comic Sans MS", system-ui, sans-serif;
+  --hand-ko: "Gaegu", "Patrick Hand", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --hand-zh: "Long Cang", "Patrick Hand", "Kaiti SC", "STKaiti", "KaiTi", "PingFang SC", sans-serif;
+  --hand: var(--hand-en);
+  --hand-weight: 400;
+}
+html[lang="ko"] { --hand: var(--hand-ko); --hand-weight: 700; }
+html[lang="zh"] { --hand: var(--hand-zh); }
+
+.site-header h1,
+.subtitle,
+.story-list button,
+.family h2 {
+  font-family: var(--hand);
+  font-weight: var(--hand-weight);
+}
+.site-header h1 { font-size: 2.8rem; line-height: 1.15; }
+.subtitle { font-size: 1.35rem; }
+.story-list button { font-size: 1.4rem; }
+.family h2 { font-size: 1.5rem; }
+html[lang="zh"] .site-header h1 { font-size: 3.2rem; }
+html[lang="zh"] .story-list button { font-size: 1.55rem; }
+
+/* Each language button is written in its own language's font. */
+.site-header .lang-switch button { font-size: 1.15rem; }
+.site-header .lang-switch button[lang="en"] { font-family: var(--hand-en); }
+.site-header .lang-switch button[lang="ko"] { font-family: var(--hand-ko); font-weight: 700; }
+.site-header .lang-switch button[lang="zh"] { font-family: var(--hand-zh); font-size: 1.3rem; }
+.site-header .lang-switch button[lang="en"][aria-pressed="true"],
+.site-header .lang-switch button[lang="zh"][aria-pressed="true"] { font-weight: 400; }
+html[lang="ko"] .subtitle { font-size: 1.55rem; }
+html[lang="ko"] .story-list button { font-size: 1.6rem; }
+html[lang="ko"] .family h2 { font-size: 1.7rem; }

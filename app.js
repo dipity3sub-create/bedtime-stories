@@ -11,7 +11,7 @@
   const UI = {
     en: {
       title: "Bedtime Stories",
-      subtitle: "Gentle stories to read together before sleep",
+      subtitle: "for Luca and Leon",
       voice: "Voice",
       speed: "Speed",
       deviceVoices: "Device voices",
@@ -56,7 +56,7 @@
     },
     ko: {
       title: "잠자리 동화",
-      subtitle: "잠들기 전 함께 읽는 포근한 이야기",
+      subtitle: "루카와 레온에게",
       voice: "목소리",
       speed: "속도",
       deviceVoices: "기기 음성",
@@ -101,7 +101,7 @@
     },
     zh: {
       title: "睡前故事",
-      subtitle: "睡前一起读的温柔小故事",
+      subtitle: "给 Luca 和 Leon",
       voice: "声音",
       speed: "语速",
       deviceVoices: "设备语音",
