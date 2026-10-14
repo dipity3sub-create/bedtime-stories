@@ -15,8 +15,11 @@
       voice: "Voice",
       speed: "Speed",
       deviceVoices: "Device voices",
-      recordedVoices: "Recorded voices",
-      studioVoices: "Studio recordings",
+      recordedVoices: "Recorded on this device",
+      studioVoices: "Shared recordings",
+      saveFile: "Save file",
+      shareHelp: "To share a recording with everyone: tap Save file, then upload that file to the recordings folder on GitHub. Don't rename it. It shows up here for everyone within a few minutes.",
+      shareLink: "Open the upload page",
       noVoice: "This device has no English voice installed. Add one in your system's speech settings, or record your own below.",
       recSummary: "🎙 Record your own voice",
       recHelp: "Read the story aloud and save it. Your recording stays on this device and appears in the Voice list for this story.",
@@ -35,8 +38,11 @@
       voice: "목소리",
       speed: "속도",
       deviceVoices: "기기 음성",
-      recordedVoices: "녹음한 목소리",
-      studioVoices: "스튜디오 녹음",
+      recordedVoices: "이 기기에서 녹음",
+      studioVoices: "공유된 녹음",
+      saveFile: "파일 저장",
+      shareHelp: "녹음을 모두와 공유하려면 '파일 저장'을 누른 뒤 그 파일을 GitHub의 recordings 폴더에 올리세요. 파일 이름은 바꾸지 마세요. 몇 분 안에 모두에게 나타나요.",
+      shareLink: "업로드 페이지 열기",
       noVoice: "이 기기에 한국어 음성이 설치되어 있지 않아요. 시스템 음성 설정에서 추가하거나 아래에서 직접 녹음해 보세요.",
       recSummary: "🎙 내 목소리로 녹음하기",
       recHelp: "동화를 소리 내어 읽고 저장하세요. 녹음은 이 기기에만 저장되며 이 동화의 목소리 목록에 나타나요.",
@@ -55,8 +61,11 @@
       voice: "声音",
       speed: "语速",
       deviceVoices: "设备语音",
-      recordedVoices: "录制的声音",
-      studioVoices: "录音室录音",
+      recordedVoices: "在此设备上录制",
+      studioVoices: "共享的录音",
+      saveFile: "保存文件",
+      shareHelp: "要和大家分享录音：点“保存文件”，再把文件上传到 GitHub 的 recordings 文件夹。请不要改文件名。几分钟后所有人都能看到。",
+      shareLink: "打开上传页面",
       noVoice: "此设备没有安装中文语音。请在系统语音设置中添加，或在下方录制您自己的声音。",
       recSummary: "🎙 录制自己的声音",
       recHelp: "大声朗读故事并保存。录音只保存在此设备上，并会出现在这个故事的声音列表中。",
@@ -96,6 +105,7 @@
     recBtn: $("rec-btn"),
     recTimer: $("rec-timer"),
     recList: $("rec-list"),
+    shareHelp: $("share-help"),
   };
 
   const store = {
@@ -107,6 +117,7 @@
     lang: store.get("lang") || guessLang(),
     story: null,
     recordings: [],     // recordings for the open story + language
+    shared: [],         // shared recordings for the open story + language
     recordingCounts: {}, // "storyId:lang" -> count, for list badges
   };
 
@@ -155,6 +166,55 @@
   })();
 
   // ---------------------------------------------------------------------------
+  // Shared recordings: audio files in the repo's recordings/ folder, named
+  // <story-id>.<lang>.<narrator>.<ext>, e.g. sleepy-moon.ko.엄마.m4a
+
+  const SHARED_DIR = "recordings";
+  const SHARED_LIST_URL =
+    "https://api.github.com/repos/dipity3sub-create/bedtime-stories/contents/" + SHARED_DIR;
+  const UPLOAD_URL =
+    "https://github.com/dipity3sub-create/bedtime-stories/upload/main/" + SHARED_DIR;
+  const AUDIO_EXT = { "audio/mp4": "m4a", "audio/ogg": "ogg", "audio/webm": "webm" };
+
+  function parseSharedName(file) {
+    const m = file.match(/^([a-z0-9-]+)\.(en|ko|zh)\.(.+)\.(m4a|mp4|webm|ogg|mp3|wav|aac)$/i);
+    if (!m) return null;
+    // Browsers add " (1)" to repeated downloads; it isn't part of the name.
+    const narrator = m[3].replace(/\s*\(\d+\)$/, "").trim();
+    return { file, storyId: m[1], lang: m[2].toLowerCase(), narrator };
+  }
+
+  function sharedFileName(rec) {
+    const name = rec.narrator.replace(/[\\/:*?"<>|.#%]+/g, "-").trim() || "voice";
+    const ext = AUDIO_EXT[(rec.blob.type || "").split(";")[0]] || "webm";
+    return `${rec.storyId}.${rec.lang}.${name}.${ext}`;
+  }
+
+  let sharedPromise = null;
+  function loadShared() {
+    sharedPromise ??= (async () => {
+      try {
+        const cached = JSON.parse(sessionStorage.getItem("shared") || "null");
+        if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.list;
+      } catch { /* ignore */ }
+      try {
+        const res = await fetch(SHARED_LIST_URL, { headers: { Accept: "application/vnd.github+json" } });
+        if (!res.ok) return [];
+        const files = await res.json();
+        const list = files
+          .filter((f) => f.type === "file")
+          .map((f) => parseSharedName(f.name))
+          .filter(Boolean);
+        try { sessionStorage.setItem("shared", JSON.stringify({ at: Date.now(), list })); } catch { /* ignore */ }
+        return list;
+      } catch {
+        return [];
+      }
+    })();
+    return sharedPromise;
+  }
+
+  // ---------------------------------------------------------------------------
   // Story list
 
   function renderChrome() {
@@ -167,6 +227,12 @@
     els.recSummary.textContent = t("recSummary");
     els.recHelp.textContent = t("recHelp");
     els.recNameLabel.textContent = t("recName");
+    const link = document.createElement("a");
+    link.href = UPLOAD_URL;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = t("shareLink");
+    els.shareHelp.replaceChildren(t("shareHelp") + " ", link);
     els.recName.placeholder = t("recPlaceholder");
     if (!recorder.active) els.recBtn.textContent = t("record");
     document.querySelectorAll(".lang-switch button").forEach((b) => {
@@ -200,9 +266,9 @@
   }
 
   async function refreshCounts() {
-    const all = await db.all();
+    const [all, shared] = await Promise.all([db.all(), loadShared()]);
     state.recordingCounts = {};
-    for (const r of all) {
+    for (const r of [...all, ...shared]) {
       const key = `${r.storyId}:${r.lang}`;
       state.recordingCounts[key] = (state.recordingCounts[key] || 0) + 1;
     }
@@ -235,8 +301,10 @@
     }));
     if (!els.dialog.open) els.dialog.showModal();
     els.dialog.querySelector(".dialog-inner").scrollTop = 0;
-    state.recordings = await db.forStory(story.id, lang);
+    const [mine, shared] = await Promise.all([db.forStory(story.id, lang), loadShared()]);
     if (state.story !== story || state.lang !== lang) return; // user moved on
+    state.recordings = mine;
+    state.shared = shared.filter((r) => r.storyId === story.id && r.lang === lang);
     renderNarrators();
     renderRecordings();
   }
@@ -279,16 +347,21 @@
     };
 
     const studio = story.audio?.[lang];
-    addGroup(t("studioVoices"), studio ? [[`file:${studio}`, "🎧 Studio"]] : []);
+    addGroup(t("studioVoices"), [
+      ...(studio ? [[`file:${studio}`, "🎧 Studio"]] : []),
+      ...state.shared.map((r) => [`shared:${r.file}`, `🎧 ${r.narrator}`]),
+    ]);
     addGroup(t("recordedVoices"), state.recordings.map((r) => [`rec:${r.id}`, `🎙 ${r.narrator}`]));
     const voices = voicesFor(lang);
     addGroup(t("deviceVoices"), voices.map((v) => [`tts:${v.voiceURI}`, `🔊 ${v.name}`]));
 
     // Restore the narrator last used for this language, by name for recordings.
     const pref = store.get(`narrator:${lang}`) || "";
-    const prefRec = pref.startsWith("name:") &&
-      state.recordings.find((r) => r.narrator === pref.slice(5));
+    const prefName = pref.startsWith("name:") ? pref.slice(5) : null;
+    const prefRec = prefName && state.recordings.find((r) => r.narrator === prefName);
+    const prefShared = prefName && state.shared.find((r) => r.narrator === prefName);
     if (prefRec) sel.value = `rec:${prefRec.id}`;
+    else if (prefShared) sel.value = `shared:${prefShared.file}`;
     else if (pref.startsWith("tts:") && voices.some((v) => `tts:${v.voiceURI}` === pref)) sel.value = pref;
     else if (sel.options.length) sel.selectedIndex = 0;
 
@@ -305,8 +378,9 @@
 
   function rememberNarrator() {
     const v = els.narrator.value;
-    if (v.startsWith("rec:")) {
-      const rec = state.recordings.find((r) => `rec:${r.id}` === v);
+    if (v.startsWith("rec:") || v.startsWith("shared:")) {
+      const rec = state.recordings.find((r) => `rec:${r.id}` === v) ||
+        state.shared.find((r) => `shared:${r.file}` === v);
       if (rec) store.set(`narrator:${state.lang}`, `name:${rec.narrator}`);
     } else if (v.startsWith("tts:")) {
       store.set(`narrator:${state.lang}`, v);
@@ -364,6 +438,7 @@
     function audioSrc() {
       const v = els.narrator.value;
       if (v.startsWith("file:")) return v.slice(5);
+      if (v.startsWith("shared:")) return `${SHARED_DIR}/${encodeURIComponent(v.slice(7))}`;
       const rec = state.recordings.find((r) => `rec:${r.id}` === v);
       if (!rec) return null;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -439,7 +514,8 @@
     let timer = null;
 
     function pickMime() {
-      const types = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"];
+      // mp4 first: it plays on iPhones as well as Android and computers.
+      const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/webm"];
       return types.find((m) => window.MediaRecorder?.isTypeSupported?.(m)) || "";
     }
 
@@ -529,7 +605,12 @@
         renderRecordings();
         refreshCounts();
       });
-      li.append(name, audio, del);
+      const save = document.createElement("a");
+      save.className = "save";
+      save.textContent = t("saveFile");
+      save.download = sharedFileName(rec);
+      save.href = audio.src;
+      li.append(name, audio, save, del);
       return li;
     }));
   }

@@ -193,6 +193,7 @@ main { max-width: 720px; margin: 0 auto; padding-block: 16px; }
   padding: 8px 12px;
 }
 .rec-list audio { flex: 1; min-width: 200px; height: 36px; }
+.rec-list .save { color: var(--ink); font-weight: 700; }
 .rec-list .del {
   border: 0;
   background: transparent;
