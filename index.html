@@ -19,6 +19,30 @@
 
   <main>
     <ul id="story-list" class="story-list"></ul>
+
+    <section class="family" aria-labelledby="fam-title">
+      <h2 id="fam-title">Share recordings with family</h2>
+      <div id="fam-off">
+        <p id="fam-intro"></p>
+        <form id="fam-form" class="fam-form" novalidate>
+          <label class="field">
+            <span id="fam-url-label">Google Apps Script link</span>
+            <input type="url" id="fam-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+          </label>
+          <button type="submit" id="fam-connect" class="play-btn">Connect</button>
+        </form>
+        <p><a id="fam-howto" href="https://github.com/dipity3sub-create/bedtime-stories/blob/main/google-drive/README.md" target="_blank" rel="noopener">Setup instructions</a></p>
+      </div>
+      <div id="fam-on" hidden>
+        <p id="fam-connected"></p>
+        <div class="fam-actions">
+          <button type="button" id="fam-invite" class="play-btn">Copy invite link</button>
+          <button type="button" id="fam-disconnect" class="stop-btn">Disconnect</button>
+        </div>
+        <input type="text" id="fam-invite-text" readonly hidden>
+      </div>
+      <p id="fam-msg" class="fam-msg" aria-live="polite"></p>
+    </section>
   </main>
 
   <dialog id="story-dialog" class="story-dialog">

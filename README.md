@@ -17,17 +17,16 @@ for a language is chosen automatically for other stories in that language when t
 
 Recordings are saved in the browser's IndexedDB on that device only. Microphone access needs `https://` or `localhost`.
 
-## Sharing recordings with everyone
+## Sharing recordings with family (Google Drive)
 
-Recordings saved in the browser stay on that device. To share one:
+Connect the site to a Google Drive folder once, and recordings made on any connected phone show up on the others
+automatically. Setup steps: [`google-drive/README.md`](google-drive/README.md). Then use **Copy invite link** on the
+site to connect your partner's phone.
 
-1. In the story, tap **Save file** next to the recording.
-2. Upload that file, without renaming it, to the [`recordings`](recordings/) folder on GitHub
-   (Add file → Upload files → Commit changes).
-3. Within a few minutes it appears under **Shared recordings** for everyone who opens the site.
+## Public recordings
 
-The repository is public, so anyone with the link can hear shared recordings. Delete the file to remove one.
-See [`recordings/README.md`](recordings/README.md) for the file naming.
+Audio files in the [`recordings`](recordings/) folder are offered to everyone who opens the site.
+The repository is public, so anyone with the link can hear them. See [`recordings/README.md`](recordings/README.md).
 
 ## Adding stories
 
